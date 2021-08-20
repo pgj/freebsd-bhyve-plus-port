@@ -17,9 +17,9 @@ IGNORE=		requires bhyve source files in ${BHYVE_SRC}
 
 .if ${OPSYS} == FreeBSD && ${OSVERSION} > 1300094
 HAS_LIB9P=	yes
-PLIST_SUB+=	LIB9P=""
-.else
 PLIST_SUB+=	LIB9P="@comment "
+.else
+PLIST_SUB+=	LIB9P=""
 .endif
 
 .if !defined(HAS_LIB9P)
