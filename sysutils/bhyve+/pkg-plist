@@ -1,4 +1,4 @@
-sbin/bhyve+
+sbin/bhyve
 %%LIB9P%%lib/lib9p.so
 %%LIB9P%%lib/lib9p.so.1
-man/man8/bhyve+.8.gz
+man/man8/bhyve.8.gz

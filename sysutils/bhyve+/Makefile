@@ -59,7 +59,7 @@ do-install:
 	${INSTALL_LIB} ${WRKSRC}/lib9p/${_lib} ${STAGEDIR}${PREFIX}/lib
 .endfor
 .endif
-	${INSTALL_PROGRAM} ${WRKSRC}/bhyve/bhyve ${STAGEDIR}${PREFIX}/sbin/bhyve+
-	${INSTALL_MAN} ${WRKSRC}/bhyve/bhyve.8.gz ${STAGEDIR}${PREFIX}/man/man8/bhyve+.8.gz
+	${INSTALL_PROGRAM} ${WRKSRC}/bhyve/bhyve ${STAGEDIR}${PREFIX}/sbin
+	${INSTALL_MAN} ${WRKSRC}/bhyve/bhyve.8.gz ${STAGEDIR}${PREFIX}/man/man8
 
 .include <bsd.port.mk>
