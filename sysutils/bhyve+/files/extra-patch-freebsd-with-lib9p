@@ -1,0 +1,11 @@
+--- bhyve/Makefile.orig	2021-08-21 10:49:01 UTC
++++ bhyve/Makefile
+@@ -3,7 +3,7 @@
+ #
+ 
+ .include <src.opts.mk>
+-CFLAGS+=-I${.CURDIR}/../../contrib/lib9p
++CFLAGS+=-I${SRCTOP}/contrib/lib9p
+ CFLAGS+=-I${SRCTOP}/sys
+ .PATH:  ${SRCTOP}/sys/cam/ctl
+ 
