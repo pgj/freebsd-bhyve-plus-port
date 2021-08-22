@@ -439,3 +439,38 @@
  void	pci_populate_msicap(struct msicap *cap, int msgs, int nextptr);
  int	pci_emul_add_msixcap(struct pci_devinst *pi, int msgnum, int barnum);
  int	pci_emul_msix_twrite(struct pci_devinst *pi, uint64_t offset, int size,
+diff --git a/bhyve.8.orig b/bhyve.8
+index 32392c9..0d4b16f 100644
+--- bhyve/bhyve.8.orig
++++ bhyve/bhyve.8
+@@ -47,7 +47,11 @@
+ .Op Fl l Ar lpcdev Ns Op , Ns Ar conf
+ .Op Fl m Ar memsize Ns Op Ar K|k|M|m|G|g|T|t
+ .Op Fl p Ar vcpu:hostcpu
+-.Op Fl s Ar slot,emulation Ns Op , Ns Ar conf
++.Oo Fl s
++.Sm off
++.Cm help | Ar slot,emulation Ns Op , Ns Ar conf
++.Sm on
++.Oc
+ .Op Fl U Ar uuid
+ .Ar vmname
+ .Sh DESCRIPTION
+@@ -157,7 +161,7 @@ to
+ .Em hostcpu .
+ .It Fl P
+ Force the guest virtual CPU to exit when a PAUSE instruction is detected.
+-.It Fl s Ar slot,emulation Ns Op , Ns Ar conf
++.It Fl s Op Ar help|slot,emulation Ns Op , Ns Ar conf
+ Configure a virtual PCI slot and function.
+ .Pp
+ .Nm
+@@ -166,6 +170,8 @@ slots on the bus.
+ There are 32 available slots, with the option of providing up to 8 functions
+ per slot.
+ .Bl -tag -width 10n
++.It Ar help
++print a list of supported PCI devices.
+ .It Ar slot
+ .Ar pcislot[:function]
+ .Ar bus:pcislot:function
