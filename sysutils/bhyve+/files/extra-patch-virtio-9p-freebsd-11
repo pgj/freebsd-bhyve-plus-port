@@ -395,3 +395,47 @@
  
  cscope: .PHONY
  	cd ${.CURDIR}; cscope -buq $$(find . -name '*.[ch]' -print)
+--- bhyve/bhyverun.c.orig	2021-08-21 23:52:19 UTC
++++ bhyve/bhyverun.c
+@@ -1058,7 +1058,10 @@ main(int argc, char *argv[])
+ 			}
+ 			break;
+ 		case 's':
+-			if (pci_parse_slot(optarg) != 0)
++			if (strncmp(optarg, "help", strlen(optarg)) == 0) {
++				pci_print_supported_devices();
++				exit(0);
++			} else if (pci_parse_slot(optarg) != 0)
+ 				exit(4);
+ 			else
+ 				break;
+--- bhyve/pci_emul.c.orig	2021-08-21 23:52:31 UTC
++++ bhyve/pci_emul.c
+@@ -237,6 +237,17 @@ done:
+ 	return (error);
+ }
+ 
++void
++pci_print_supported_devices()
++{
++	struct pci_devemu **pdpp, *pdp;
++
++	SET_FOREACH(pdpp, pci_devemu_set) {
++		pdp = *pdpp;
++		printf("%s\n", pdp->pe_emu);
++	}
++}
++
+ static int
+ pci_valid_pba_offset(struct pci_devinst *pi, uint64_t offset)
+ {
+--- bhyve/pci_emul.h.orig	2021-08-21 23:54:47 UTC
++++ bhyve/pci_emul.h
+@@ -235,6 +235,7 @@ int	pci_msix_table_bar(struct pci_devins
+ int	pci_msix_pba_bar(struct pci_devinst *pi);
+ int	pci_msi_maxmsgnum(struct pci_devinst *pi);
+ int	pci_parse_slot(char *opt);
++void	pci_print_supported_devices();
+ void	pci_populate_msicap(struct msicap *cap, int msgs, int nextptr);
+ int	pci_emul_add_msixcap(struct pci_devinst *pi, int msgnum, int barnum);
+ int	pci_emul_msix_twrite(struct pci_devinst *pi, uint64_t offset, int size,
