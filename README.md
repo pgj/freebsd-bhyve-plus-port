@@ -18,6 +18,9 @@ Currently, the following extensions are offered over the vanilla
   mappings in the MSI-X table
   page](https://reviews.freebsd.org/D31241) is added.
 
+- The feature of querying the list of supported PCI devices for
+  FreeBSD 11 is ported back from later versions.
+
 ## Installation
 
 After cloning the repository, the port can be installed as follows.
