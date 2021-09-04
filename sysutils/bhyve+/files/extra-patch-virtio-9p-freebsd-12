@@ -1,5 +1,5 @@
---- bhyve/bhyve.8.orig	2021-08-19 22:38:50 UTC
-+++ bhyve/bhyve.8
+--- usr.sbin/bhyve/bhyve.8.orig	2021-08-19 22:38:50 UTC
++++ usr.sbin/bhyve/bhyve.8
 @@ -242,6 +242,8 @@ Virtio network interface.
  Virtio block storage interface.
  .It Li virtio-scsi
@@ -29,13 +29,13 @@
  .El
  .Pp
  TTY devices:
---- bhyve/Makefile.orig	2021-08-19 23:00:57 UTC
-+++ bhyve/Makefile
+--- usr.sbin/bhyve/Makefile.orig	2021-08-19 23:00:57 UTC
++++ usr.sbin/bhyve/Makefile
 @@ -3,6 +3,7 @@
  #
  
  .include <src.opts.mk>
-+CFLAGS+=-I${.CURDIR}/../lib9p
++CFLAGS+=-I${SRCTOP}/contrib/lib9p
  CFLAGS+=-I${SRCTOP}/sys
  .PATH:  ${SRCTOP}/sys/cam/ctl
  
@@ -52,13 +52,13 @@
  SRCS+=	vmm_instruction_emul.c
  
 -LIBADD=	vmmapi md pthread z util sbuf cam
-+LIBADD=	vmmapi md pthread z util sbuf cam casper cap_pwd cap_grp
-+LDADD=  -L../lib9p -l9p
++LIBADD=	md pthread z util sbuf cam casper cap_pwd cap_grp
++LDADD=  -L../../contrib/lib9p -l9p ../../lib/libvmmapi/libvmmapi.so.5.1
  
  .if ${MK_INET_SUPPORT} != "no"
  CFLAGS+=-DINET
---- bhyve/pci_virtio_9p.c.orig	2021-08-19 22:44:10 UTC
-+++ bhyve/pci_virtio_9p.c
+--- usr.sbin/bhyve/pci_virtio_9p.c.orig	2021-08-19 22:44:10 UTC
++++ usr.sbin/bhyve/pci_virtio_9p.c
 @@ -0,0 +1,344 @@
 +/*-
 + * Copyright (c) 2015 iXsystems Inc.
@@ -404,8 +404,8 @@
 +	.pe_barread =	vi_pci_read
 +};
 +PCI_EMUL_SET(pci_de_v9p);
---- bhyve/virtio.h.orig	2021-08-19 22:41:21 UTC
-+++ bhyve/virtio.h
+--- usr.sbin/bhyve/virtio.h.orig	2021-08-19 22:41:21 UTC
++++ usr.sbin/bhyve/virtio.h
 @@ -216,6 +216,7 @@ struct vring_used {
  #define	VIRTIO_DEV_CONSOLE	0x1003
  #define	VIRTIO_DEV_RANDOM	0x1005
@@ -414,8 +414,8 @@
 
  /*
   * PCI config space constants.
---- lib9p-9d5aee77bcc1bf0e79b0a3bfefff5fdf2146283c/Makefile.orig	2021-08-20 14:28:28 UTC
-+++ lib9p-9d5aee77bcc1bf0e79b0a3bfefff5fdf2146283c/Makefile
+--- contrib/lib9p/Makefile.orig	2021-08-20 14:28:28 UTC
++++ contrib/lib9p/Makefile
 @@ -18,8 +18,7 @@ SRCS=		pack.c \
  INCS=		lib9p.h
  CC=		clang

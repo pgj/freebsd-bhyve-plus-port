@@ -7,13 +7,23 @@ COMMENT=	BHyVe with unofficial extensions
 
 LICENSE=	BSD2CLAUSE
 
+ONLY_FOR_ARCHS=	amd64
+USES=		kmod uidfix
+
 .include <bsd.port.options.mk>
 
-BHYVE_SRC=	${SRC_BASE}/usr.sbin/bhyve
+SRCS=		${SRC_BASE}/sys/modules/vmm \
+		${SRC_BASE}/sys/amd64/vmm \
+		${SRC_BASE}/lib/libvmmapi \
+		${SRC_BASE}/usr.sbin/bhyve \
+		${SRC_BASE}/usr.sbin/bhyvectl \
+		${SRC_BASE}/usr.sbin/bhyveload
 
-.if !exists(${BHYVE_SRC})
-IGNORE=		requires bhyve source files in ${BHYVE_SRC}
-.endif
+.for _src in ${SRCS}
+.  if !exists(${_src})
+IGNORE=		requires bhyve and vmm source files in ${_src}
+.  endif
+.endfor
 
 .if ${OPSYS} == FreeBSD && ${OSVERSION} > 1300094
 HAS_LIB9P=	yes
@@ -52,25 +62,43 @@ DISTFILES=	# no distfiles in this case
 
 WRKSRC=		${WRKDIR}
 
+_LINKS=		stand/userboot \
+		share/mk
+
 post-extract:
 .if !defined(HAS_LIB9P)
-	cd ${WRKSRC} && ${LN} -s ${GH_PROJECT}-${GH_TAGNAME} lib9p
+	@${MKDIR} -p ${WRKSRC}/contrib
+	@cd ${WRKSRC} && ${LN} -s ../${GH_PROJECT}-${GH_TAGNAME} contrib/lib9p
 .endif
-	cd ${BHYVE_SRC} && ${COPYTREE_SHARE} . ${WRKDIR}/bhyve/
+.for _link in ${_LINKS}
+	@${MKDIR} -p $$(dirname ${WRKSRC}/${_link})
+	@cd ${WRKSRC} && ${LN} -s ${SRC_BASE}/${_link} ${_link}
+.endfor
+.for _src in ${SRCS}
+	@cd ${_src} && ${COPYTREE_SHARE} . ${WRKDIR}/${_src:S/${SRC_BASE}//1}
+.endfor
 
 do-build:
 .if !defined(HAS_LIB9P)
-	cd ${WRKSRC}/lib9p && ${MAKE} -m ${SRC_BASE}/share/mk
+	cd ${WRKSRC}/contrib/lib9p && ${MAKE}
 .endif
-	cd ${WRKSRC}/bhyve && ${MAKE} -m ${SRC_BASE}/share/mk
+.for _src in ${SRCS}
+.  if exists(${_src}/Makefile)
+	cd ${WRKSRC}/${_src:S/${SRC_BASE}//1} && ${MAKE} SRCTOP=${WRKSRC} SYSDIR=${SRC_BASE}/sys
+.  endif
+.endfor
 
 do-install:
 .if !defined(HAS_LIB9P)
-.for _lib in lib9p.so lib9p.so.1
-	${INSTALL_LIB} ${WRKSRC}/lib9p/${_lib} ${STAGEDIR}${PREFIX}/lib
-.endfor
+.  for _lib in lib9p.so lib9p.so.1
+	${INSTALL_LIB} ${WRKSRC}/contrib/lib9p/${_lib} ${STAGEDIR}${PREFIX}/lib
+.  endfor
 .endif
-	${INSTALL_PROGRAM} ${WRKSRC}/bhyve/bhyve ${STAGEDIR}${PREFIX}/sbin
-	${INSTALL_MAN} ${WRKSRC}/bhyve/bhyve.8.gz ${STAGEDIR}${PREFIX}/man/man8
+	${INSTALL_LIB} ${WRKSRC}/lib/libvmmapi/libvmmapi.so.5.1 ${STAGEDIR}${PREFIX}/lib
+.for _bin in bhyve bhyveload bhyvectl
+	${INSTALL_PROGRAM} ${WRKSRC}/usr.sbin/${_bin}/${_bin} ${STAGEDIR}${PREFIX}/sbin
+	${INSTALL_MAN} ${WRKSRC}/usr.sbin/${_bin}/${_bin}.8.gz ${STAGEDIR}${PREFIX}/man/man8
+.endfor
+	${INSTALL_PROGRAM} ${WRKSRC}/sys/modules/vmm/vmm.ko ${STAGEDIR}${KMODDIR}
 
 .include <bsd.port.mk>

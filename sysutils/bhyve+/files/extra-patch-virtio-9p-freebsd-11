@@ -1,10 +1,10 @@
---- bhyve/Makefile.orig	2021-08-20 16:08:36 UTC
-+++ bhyve/Makefile
+--- usr.sbin/bhyve/Makefile.orig	2021-08-20 16:08:36 UTC
++++ usr.sbin/bhyve/Makefile
 @@ -3,6 +3,7 @@
  #
  
  .include <src.opts.mk>
-+CFLAGS+=-I${.CURDIR}/../lib9p
++CFLAGS+=-I${SRCTOP}/contrib/lib9p
  CFLAGS+=-I${SRCTOP}/sys
  
  PROG=	bhyve
@@ -21,13 +21,13 @@
  SRCS+=	vmm_instruction_emul.c
  
 -LIBADD=	vmmapi md pthread z
-+LIBADD=	vmmapi md pthread z sbuf casper cap_pwd cap_grp
-+LDADD+= -L../lib9p -l9p
++LIBADD=	md pthread z sbuf casper cap_pwd cap_grp
++LDADD+= -L../lib9p -l9p ../../lib/libvmmapi/libvmmapi.so.5.1
  
  .if ${MK_INET_SUPPORT} != "no"
  CFLAGS+=-DINET
---- bhyve/pci_virtio_9p.c.orig	2021-08-20 16:11:13 UTC
-+++ bhyve/pci_virtio_9p.c
+--- usr.sbin/bhyve/pci_virtio_9p.c.orig	2021-08-20 16:11:13 UTC
++++ usr.sbin/bhyve/pci_virtio_9p.c
 @@ -0,0 +1,344 @@
 +/*-
 + * Copyright (c) 2015 iXsystems Inc.
@@ -373,8 +373,8 @@
 +	.pe_barread =	vi_pci_read
 +};
 +PCI_EMUL_SET(pci_de_v9p);
---- bhyve/virtio.h.orig	2021-08-20 16:20:49 UTC
-+++ bhyve/virtio.h
+--- usr.sbin/bhyve/virtio.h.orig	2021-08-20 16:20:49 UTC
++++ usr.sbin/bhyve/virtio.h
 @@ -215,6 +215,7 @@ struct vring_used {
  #define	VIRTIO_DEV_BLOCK	0x1001
  #define	VIRTIO_DEV_RANDOM	0x1005
@@ -383,8 +383,8 @@
  
  /*
   * PCI config space constants.
---- lib9p/Makefile.orig	2020-08-16 11:17:45 UTC
-+++ lib9p/Makefile
+--- contrib/lib9p/Makefile.orig	2020-08-16 11:17:45 UTC
++++ contrib/lib9p/Makefile
 @@ -18,8 +18,7 @@ SRCS=		pack.c \
  INCS=		lib9p.h
  CC=		clang
@@ -395,8 +395,8 @@
  
  cscope: .PHONY
  	cd ${.CURDIR}; cscope -buq $$(find . -name '*.[ch]' -print)
---- bhyve/bhyverun.c.orig	2021-08-21 23:52:19 UTC
-+++ bhyve/bhyverun.c
+--- usr.sbin/bhyve/bhyverun.c.orig	2021-08-21 23:52:19 UTC
++++ usr.sbin/bhyve/bhyverun.c
 @@ -1058,7 +1058,10 @@ main(int argc, char *argv[])
  			}
  			break;
@@ -409,8 +409,8 @@
  				exit(4);
  			else
  				break;
---- bhyve/pci_emul.c.orig	2021-08-21 23:52:31 UTC
-+++ bhyve/pci_emul.c
+--- usr.sbin/bhyve/pci_emul.c.orig	2021-08-21 23:52:31 UTC
++++ usr.sbin/bhyve/pci_emul.c
 @@ -237,6 +237,17 @@ done:
  	return (error);
  }
@@ -429,8 +429,8 @@
  static int
  pci_valid_pba_offset(struct pci_devinst *pi, uint64_t offset)
  {
---- bhyve/pci_emul.h.orig	2021-08-21 23:54:47 UTC
-+++ bhyve/pci_emul.h
+--- usr.sbin/bhyve/pci_emul.h.orig	2021-08-21 23:54:47 UTC
++++ usr.sbin/bhyve/pci_emul.h
 @@ -235,6 +235,7 @@ int	pci_msix_table_bar(struct pci_devins
  int	pci_msix_pba_bar(struct pci_devinst *pi);
  int	pci_msi_maxmsgnum(struct pci_devinst *pi);
@@ -441,8 +441,8 @@
  int	pci_emul_msix_twrite(struct pci_devinst *pi, uint64_t offset, int size,
 diff --git a/bhyve.8.orig b/bhyve.8
 index 32392c9..0d4b16f 100644
---- bhyve/bhyve.8.orig
-+++ bhyve/bhyve.8
+--- usr.sbin/bhyve/bhyve.8.orig
++++ usr.sbin/bhyve/bhyve.8
 @@ -47,7 +47,11 @@
  .Op Fl l Ar lpcdev Ns Op , Ns Ar conf
  .Op Fl m Ar memsize Ns Op Ar K|k|M|m|G|g|T|t

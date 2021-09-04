@@ -1,4 +1,10 @@
 sbin/bhyve
+sbin/bhyvectl
+sbin/bhyveload
 %%LIB9P%%lib/lib9p.so
 %%LIB9P%%lib/lib9p.so.1
+lib/libvmmapi.so.5.1
 man/man8/bhyve.8.gz
+man/man8/bhyvectl.8.gz
+man/man8/bhyveload.8.gz
+/%%KMODDIR%%/vmm.ko
