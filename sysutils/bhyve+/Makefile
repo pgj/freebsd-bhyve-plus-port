@@ -17,7 +17,8 @@ SRCS=		${SRC_BASE}/sys/modules/vmm \
 		${SRC_BASE}/lib/libvmmapi \
 		${SRC_BASE}/usr.sbin/bhyve \
 		${SRC_BASE}/usr.sbin/bhyvectl \
-		${SRC_BASE}/usr.sbin/bhyveload
+		${SRC_BASE}/usr.sbin/bhyveload \
+		${SRC_BASE}/share/mk
 
 .for _src in ${SRCS}
 .  if !exists(${_src})
@@ -25,32 +26,22 @@ IGNORE=		requires bhyve and vmm source files in ${_src}
 .  endif
 .endfor
 
-.if ${OPSYS} == FreeBSD && ${OSVERSION} > 1300094
-HAS_LIB9P=	yes
-PLIST_SUB+=	LIB9P="@comment "
-.else
-PLIST_SUB+=	LIB9P=""
-.endif
-
-.if !defined(HAS_LIB9P)
 USE_GITHUB=	yes
 GH_ACCOUNT=	conclusiveeng
 GH_PROJECT=	lib9p
-GH_TAGNAME=	9d5aee77bcc1bf0e79b0a3bfefff5fdf2146283c
+GH_TAGNAME=	7ef466772108856ee3e093735033232a6f1a3f04
 
 USE_LDCONFIG=	yes
 
-.  if 1100000 <= ${OSVERSION} && ${OSVERSION} < 1200000
+.if 1100000 <= ${OSVERSION} && ${OSVERSION} < 1200000
 EXTRA_PATCHES=	${PATCHDIR}/freebsd-11
-.  elif 1200000 <= ${OSVERSION} && ${OSVERSION} < 1300000
+.elif 1200000 <= ${OSVERSION} && ${OSVERSION} < 1300000
 EXTRA_PATCHES=	${PATCHDIR}/freebsd-12
-.  else
-IGNORE=		unsupported system
-.  endif
-.else # HAS_LIB9P
+.elif 1300000 <= ${OSVERSION}
 EXTRA_PATCHES=	${PATCHDIR}/freebsd-13
-DISTFILES=	# no distfiles in this case
-.endif # HAS_LIB9P
+.else
+IGNORE=		unsupported system
+.endif
 
 WRKSRC=		${WRKDIR}
 
@@ -58,14 +49,11 @@ _LINKS=		sys/cam/ctl \
 		sys/dev/e1000 \
 		sys/dev/mii \
 		sys/dev/usb/controller \
-		stand/userboot \
-		share/mk
+		stand/userboot
 
 post-extract:
-.if !defined(HAS_LIB9P)
 	@${MKDIR} -p ${WRKSRC}/contrib
 	@cd ${WRKSRC} && ${LN} -s ../${GH_PROJECT}-${GH_TAGNAME} contrib/lib9p
-.endif
 .for _link in ${_LINKS}
 	@${MKDIR} -p $$(dirname ${WRKSRC}/${_link})
 	@cd ${WRKSRC} && ${LN} -s ${SRC_BASE}/${_link} ${_link}
@@ -75,9 +63,7 @@ post-extract:
 .endfor
 
 do-build:
-.if !defined(HAS_LIB9P)
-	cd ${WRKSRC}/contrib/lib9p && ${MAKE}
-.endif
+	cd ${WRKSRC}/contrib/lib9p && ${MAKE} SRCTOP=${WRKSRC} SYSDIR=${SRC_BASE}/sys LIB9PDIR=
 .for _src in ${SRCS}
 .  if exists(${_src}/Makefile)
 	cd ${WRKSRC}/${_src:S/${SRC_BASE}//1} && ${MAKE} SRCTOP=${WRKSRC} SYSDIR=${SRC_BASE}/sys
@@ -85,11 +71,7 @@ do-build:
 .endfor
 
 do-install:
-.if !defined(HAS_LIB9P)
-.  for _lib in lib9p.so lib9p.so.1
-	${INSTALL_LIB} ${WRKSRC}/contrib/lib9p/${_lib} ${STAGEDIR}${PREFIX}/lib
-.  endfor
-.endif
+	${INSTALL_LIB} ${WRKSRC}/contrib/lib9p/lib9p.so.1.1 ${STAGEDIR}${PREFIX}/lib
 	${INSTALL_LIB} ${WRKSRC}/lib/libvmmapi/libvmmapi.so.5.1 ${STAGEDIR}${PREFIX}/lib
 .for _bin in bhyve bhyveload bhyvectl
 	${INSTALL_PROGRAM} ${WRKSRC}/usr.sbin/${_bin}/${_bin} ${STAGEDIR}${PREFIX}/sbin

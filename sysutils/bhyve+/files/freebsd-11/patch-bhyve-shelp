@@ -63,3 +63,17 @@ index 32392c9..0d4b16f 100644
  .It Ar slot
  .Ar pcislot[:function]
  .Ar bus:pcislot:function
+--- usr.sbin/bhyve/bhyverun.c.orig	2021-08-21 23:52:19 UTC
++++ usr.sbin/bhyve/bhyverun.c
+@@ -1058,7 +1058,10 @@ main(int argc, char *argv[])
+ 			}
+ 			break;
+ 		case 's':
+-			if (pci_parse_slot(optarg) != 0)
++			if (strncmp(optarg, "help", strlen(optarg)) == 0) {
++				pci_print_supported_devices();
++				exit(0);
++			} else if (pci_parse_slot(optarg) != 0)
+ 				exit(4);
+ 			else
+ 				break;

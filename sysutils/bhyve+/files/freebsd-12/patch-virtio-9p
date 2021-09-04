@@ -53,7 +53,7 @@
  
 -LIBADD=	vmmapi md pthread z util sbuf cam
 +LIBADD=	md pthread z util sbuf cam casper cap_pwd cap_grp
-+LDADD=  -L../../contrib/lib9p -l9p ../../lib/libvmmapi/libvmmapi.so.5.1
++LDADD=  ../../contrib/lib9p/lib9p.so.1.1 ../../lib/libvmmapi/libvmmapi.so.5.1
  
  .if ${MK_INET_SUPPORT} != "no"
  CFLAGS+=-DINET
@@ -414,15 +414,3 @@
 
  /*
   * PCI config space constants.
---- contrib/lib9p/Makefile.orig	2021-08-20 14:28:28 UTC
-+++ contrib/lib9p/Makefile
-@@ -18,8 +18,7 @@ SRCS=		pack.c \
- INCS=		lib9p.h
- CC=		clang
- CFLAGS=		-g -O0 -DL9P_DEBUG=L9P_DEBUG -DWITH_CASPER
--LIBADD=		sbuf libcasper libcap_pwd libcap_grp
--SUBDIR=		example
-+LIBADD=		sbuf casper cap_pwd cap_grp
- 
- cscope: .PHONY
- 	cd ${.CURDIR}; cscope -buq $$(find . -name '*.[ch]' -print)

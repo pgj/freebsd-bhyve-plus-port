@@ -22,7 +22,7 @@
  
 -LIBADD=	vmmapi md pthread z
 +LIBADD=	md pthread z sbuf casper cap_pwd cap_grp
-+LDADD+= -L../lib9p -l9p ../../lib/libvmmapi/libvmmapi.so.5.1
++LDADD+= ../../contrib/lib9p/lib9p.so.1.1 ../../lib/libvmmapi/libvmmapi.so.5.1
  
  .if ${MK_INET_SUPPORT} != "no"
  CFLAGS+=-DINET
@@ -383,29 +383,3 @@
  
  /*
   * PCI config space constants.
---- contrib/lib9p/Makefile.orig	2020-08-16 11:17:45 UTC
-+++ contrib/lib9p/Makefile
-@@ -18,8 +18,7 @@ SRCS=		pack.c \
- INCS=		lib9p.h
- CC=		clang
- CFLAGS=		-g -O0 -DL9P_DEBUG=L9P_DEBUG -DWITH_CASPER
--LIBADD=		sbuf libcasper libcap_pwd libcap_grp
--SUBDIR=		example
-+LIBADD=		sbuf casper cap_pwd cap_grp
- 
- cscope: .PHONY
- 	cd ${.CURDIR}; cscope -buq $$(find . -name '*.[ch]' -print)
---- usr.sbin/bhyve/bhyverun.c.orig	2021-08-21 23:52:19 UTC
-+++ usr.sbin/bhyve/bhyverun.c
-@@ -1058,7 +1058,10 @@ main(int argc, char *argv[])
- 			}
- 			break;
- 		case 's':
--			if (pci_parse_slot(optarg) != 0)
-+			if (strncmp(optarg, "help", strlen(optarg)) == 0) {
-+				pci_print_supported_devices();
-+				exit(0);
-+			} else if (pci_parse_slot(optarg) != 0)
- 				exit(4);
- 			else
- 				break;
