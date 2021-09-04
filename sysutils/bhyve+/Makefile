@@ -49,6 +49,8 @@ _LINKS=		sys/cam/ctl \
 		sys/dev/e1000 \
 		sys/dev/mii \
 		sys/dev/usb/controller \
+		sys/amd64/include \
+		sys/x86/include \
 		stand/userboot
 
 post-extract:

@@ -15,7 +15,7 @@
  
 -LIBADD=	vmmapi md pthread z util sbuf cam 9p
 +LIBADD=	md pthread z util sbuf cam
-+LDADD=	../../contrib/lib/lib9p/lib9p.so.1.1 ../../lib/libvmmapi/libvmmapi.so.5.1
++LDADD=	../../contrib/lib9p/lib9p.so.1.1 ../../lib/libvmmapi/libvmmapi.so.5.1
  
  .if ${MK_CASPER} != "no"
  LIBADD+=	casper
