@@ -40,29 +40,25 @@ GH_TAGNAME=	9d5aee77bcc1bf0e79b0a3bfefff5fdf2146283c
 
 USE_LDCONFIG=	yes
 
-.if 1103000 <= ${OSVERSION} && ${OSVERSION} < 1200000
-EXTRA_PATCHES=	${PATCHDIR}/extra-patch-virtio-9p-freebsd-11
-.elif 1201000 <= ${OSVERSION} && ${OSVERSION} < 1300000
-# The Ports Framework does not support alternative patches,
-# so this workaround is needed.
-post-patch:
-	@(${ECHO} "===>  Applying extra patches for FreeBSD 12")
-	@(if (${CAT} ${PATCHDIR}/extra-patch-virtio-9p-freebsd-12 | ${PATCH} --dry-run --quiet ${PATCH_ARGS} -d ${PATCH_WRKSRC} > /dev/null 2>&1); then \
-		${CAT} ${PATCHDIR}/extra-patch-virtio-9p-freebsd-12 | ${PATCH} ${PATCH_ARGS} -d ${PATCH_WRKSRC}; \
-	else \
-		${CAT} ${PATCHDIR}/extra-patch-virtio-9p-freebsd-12-alt | ${PATCH} ${PATCH_ARGS} -d ${PATCH_WRKSRC}; \
-	fi)
-.else
+.  if 1100000 <= ${OSVERSION} && ${OSVERSION} < 1200000
+EXTRA_PATCHES=	${PATCHDIR}/freebsd-11
+.  elif 1200000 <= ${OSVERSION} && ${OSVERSION} < 1300000
+EXTRA_PATCHES=	${PATCHDIR}/freebsd-12
+.  else
 IGNORE=		unsupported system
-.endif
+.  endif
 .else # HAS_LIB9P
-EXTRA_PATCHES=	${PATCHDIR}/extra-patch-freebsd-with-lib9p
+EXTRA_PATCHES=	${PATCHDIR}/freebsd-13
 DISTFILES=	# no distfiles in this case
 .endif # HAS_LIB9P
 
 WRKSRC=		${WRKDIR}
 
-_LINKS=		stand/userboot \
+_LINKS=		sys/cam/ctl \
+		sys/dev/e1000 \
+		sys/dev/mii \
+		sys/dev/usb/controller \
+		stand/userboot \
 		share/mk
 
 post-extract:

@@ -1,35 +1,4 @@
---- usr.sbin/bhyve/bhyve.8.orig	2021-08-20 19:54:18 UTC
-+++ usr.sbin/bhyve/bhyve.8
-@@ -299,6 +299,8 @@ Virtio network interface.
- Virtio block storage interface.
- .It Cm virtio-scsi
- Virtio SCSI interface.
-+.It Cm virtio-9p
-+Virtio 9p (VirtFS) interface.
- .It Cm virtio-rnd
- Virtio RNG interface.
- .It Cm virtio-console
-@@ -404,6 +406,19 @@ are:
- .It Cm iid= Ns Ar IID
- Initiator ID to use when sending requests to specified CTL port.
- The default value is 0.
-+.El
-+.Pp
-+9P devices:
-+.Bl -tag -width 10n
-+.It Pa sharename=/path/to/share[,9p-device-options]
-+.El
-+.Pp
-+The
-+.Ar 9p-device-options
-+are:
-+.Bl -tag -width 10n
-+.It Li ro
-+Expose the share in read-only mode.
- .El
- .Pp
- TTY device backends:
---- usr.sbin/bhyve/Makefile.orig	2021-08-20 19:54:18 UTC
+--- usr.sbin/bhyve/Makefile.orig	2021-08-20 16:08:36 UTC
 +++ usr.sbin/bhyve/Makefile
 @@ -3,6 +3,7 @@
  #
@@ -37,27 +6,27 @@
  .include <src.opts.mk>
 +CFLAGS+=-I${SRCTOP}/contrib/lib9p
  CFLAGS+=-I${SRCTOP}/sys
- .PATH:  ${SRCTOP}/sys/cam/ctl
  
-@@ -43,6 +44,7 @@ SRCS=	\
+ PROG=	bhyve
+@@ -37,6 +38,7 @@ SRCS=	\
+ 	pci_irq.c		\
  	pci_lpc.c		\
- 	pci_nvme.c		\
  	pci_passthru.c		\
 +	pci_virtio_9p.c         \
  	pci_virtio_block.c	\
  	pci_virtio_console.c	\
  	pci_virtio_net.c	\
-@@ -72,7 +74,8 @@ SRCS=	\
+@@ -63,7 +65,8 @@ SRCS=	\
  .PATH:  ${BHYVE_SYSDIR}/sys/amd64/vmm
  SRCS+=	vmm_instruction_emul.c
  
--LIBADD=	vmmapi md pthread z util sbuf cam
-+LIBADD=	md pthread z util sbuf cam casper cap_pwd cap_grp
-+LDADD=  -L../../contrib/lib9p -l9p ../../lib/libvmmapi/libvmmapi.so.5.1
+-LIBADD=	vmmapi md pthread z
++LIBADD=	md pthread z sbuf casper cap_pwd cap_grp
++LDADD+= -L../lib9p -l9p ../../lib/libvmmapi/libvmmapi.so.5.1
  
  .if ${MK_INET_SUPPORT} != "no"
  CFLAGS+=-DINET
---- usr.sbin/bhyve/pci_virtio_9p.c.orig	2021-08-20 20:01:37 UTC
+--- usr.sbin/bhyve/pci_virtio_9p.c.orig	2021-08-20 16:11:13 UTC
 +++ usr.sbin/bhyve/pci_virtio_9p.c
 @@ -0,0 +1,344 @@
 +/*-
@@ -404,12 +373,12 @@
 +	.pe_barread =	vi_pci_read
 +};
 +PCI_EMUL_SET(pci_de_v9p);
---- usr.sbin/bhyve/virtio.h.orig	2021-08-20 19:54:18 UTC
+--- usr.sbin/bhyve/virtio.h.orig	2021-08-20 16:20:49 UTC
 +++ usr.sbin/bhyve/virtio.h
-@@ -216,6 +216,7 @@ struct vring_used {
- #define	VIRTIO_DEV_CONSOLE	0x1003
+@@ -215,6 +215,7 @@ struct vring_used {
+ #define	VIRTIO_DEV_BLOCK	0x1001
  #define	VIRTIO_DEV_RANDOM	0x1005
- #define	VIRTIO_DEV_SCSI		0x1008
+ #define	VIRTIO_DEV_CONSOLE	0x1003
 +#define        VIRTIO_DEV_9P           0x1009
  
  /*
@@ -426,3 +395,17 @@
  
  cscope: .PHONY
  	cd ${.CURDIR}; cscope -buq $$(find . -name '*.[ch]' -print)
+--- usr.sbin/bhyve/bhyverun.c.orig	2021-08-21 23:52:19 UTC
++++ usr.sbin/bhyve/bhyverun.c
+@@ -1058,7 +1058,10 @@ main(int argc, char *argv[])
+ 			}
+ 			break;
+ 		case 's':
+-			if (pci_parse_slot(optarg) != 0)
++			if (strncmp(optarg, "help", strlen(optarg)) == 0) {
++				pci_print_supported_devices();
++				exit(0);
++			} else if (pci_parse_slot(optarg) != 0)
+ 				exit(4);
+ 			else
+ 				break;
