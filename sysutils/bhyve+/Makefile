@@ -65,10 +65,12 @@ post-extract:
 .endfor
 
 do-build:
-	cd ${WRKSRC}/contrib/lib9p && ${MAKE} SRCTOP=${WRKSRC} SYSDIR=${SRC_BASE}/sys LIB9PDIR=
+	@cd ${WRKSRC}/contrib/lib9p && \
+		${MAKE} SRCTOP=${WRKSRC} SYSDIR=${SRC_BASE}/sys LIB9PDIR=
 .for _src in ${SRCS}
 .  if exists(${_src}/Makefile)
-	cd ${WRKSRC}/${_src:S/${SRC_BASE}//1} && ${MAKE} SRCTOP=${WRKSRC} SYSDIR=${SRC_BASE}/sys
+	@cd ${WRKSRC}/${_src:S/${SRC_BASE}//1} && \
+		${MAKE} SRCTOP=${WRKSRC} SYSDIR=${SRC_BASE}/sys EXPORT_SYMS=yes
 .  endif
 .endfor
 
@@ -79,6 +81,6 @@ do-install:
 	${INSTALL_PROGRAM} ${WRKSRC}/usr.sbin/${_bin}/${_bin} ${STAGEDIR}${PREFIX}/sbin
 	${INSTALL_MAN} ${WRKSRC}/usr.sbin/${_bin}/${_bin}.8.gz ${STAGEDIR}${PREFIX}/man/man8
 .endfor
-	${INSTALL_PROGRAM} ${WRKSRC}/sys/modules/vmm/vmm.ko ${STAGEDIR}${KMODDIR}
+	${INSTALL_KLD} ${WRKSRC}/sys/modules/vmm/vmm.ko ${STAGEDIR}${KMODDIR}
 
 .include <bsd.port.mk>
