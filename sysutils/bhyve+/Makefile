@@ -63,6 +63,7 @@ post-extract:
 .for _src in ${SRCS}
 	@cd ${_src} && ${COPYTREE_SHARE} . ${WRKDIR}/${_src:S/${SRC_BASE}//1}
 .endfor
+	@cd ${FILESDIR} && ${COPYTREE_SHARE} kernconf ${WRKSRC}
 
 do-build:
 	@cd ${WRKSRC}/contrib/lib9p && \
@@ -70,7 +71,8 @@ do-build:
 .for _src in ${SRCS}
 .  if exists(${_src}/Makefile)
 	@cd ${WRKSRC}/${_src:S/${SRC_BASE}//1} && \
-		${MAKE} SRCTOP=${WRKSRC} SYSDIR=${SRC_BASE}/sys EXPORT_SYMS=yes
+		${MAKE} SRCTOP=${WRKSRC} SYSDIR=${SRC_BASE}/sys DEBUG_FLAGS=-g \
+		MK_CTF=yes KERNBUILDDIR=${WRKSRC}/kernconf
 .  endif
 .endfor
 
