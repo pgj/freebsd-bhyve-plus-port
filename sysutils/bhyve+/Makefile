@@ -21,8 +21,8 @@ SRCS=		${SRC_BASE}/sys/modules/vmm \
 		${SRC_BASE}/share/mk
 
 .for _src in ${SRCS}
-.  if !exists(${_src})
-IGNORE=		requires bhyve and vmm source files in ${_src}
+.  if !exists(${_src}) && empty(IGNORE)
+IGNORE+=	requires bhyve and vmm source files in ${_src}
 .  endif
 .endfor
 
@@ -40,7 +40,9 @@ EXTRA_PATCHES=	${PATCHDIR}/freebsd-12
 .elif 1300000 <= ${OSVERSION}
 EXTRA_PATCHES=	${PATCHDIR}/freebsd-13
 .else
-IGNORE=		unsupported system
+.  if empty(IGNORE)
+IGNORE+=	cannot build: unsupported system
+.  endif
 .endif
 
 WRKSRC=		${WRKDIR}
@@ -54,10 +56,10 @@ _LINKS=		sys/cam/ctl \
 		stand/userboot
 
 post-extract:
-	@${MKDIR} -p ${WRKSRC}/contrib
+	@${MKDIR} ${WRKSRC}/contrib
 	@cd ${WRKSRC} && ${LN} -s ../${GH_PROJECT}-${GH_TAGNAME} contrib/lib9p
 .for _link in ${_LINKS}
-	@${MKDIR} -p $$(dirname ${WRKSRC}/${_link})
+	@${MKDIR} $$(dirname ${WRKSRC}/${_link})
 	@cd ${WRKSRC} && ${LN} -s ${SRC_BASE}/${_link} ${_link}
 .endfor
 .for _src in ${SRCS}
