@@ -38,6 +38,6 @@ After cloning the repository, the port can be installed as follows.
 # make install clean
 ```
 
-Note that the port is going install a version of `vmm.ko` under
+Note that the port is going to install a version of `vmm.ko` under
 `/boot/modules/` which must be explicitly referenced when using
 `kldload(8)` for loading the module.
